@@ -1,2 +1,8 @@
 venv
 .ipynb_checkpoints
+.idea
+out/*.aux
+out/*.log
+out/*.out
+out/*.gz
+out/*.toc
