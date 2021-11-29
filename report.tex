@@ -10,6 +10,7 @@
 \usepackage{subcaption}
 \usepackage{amsfonts}
 \usepackage{pdfpages}
+\usepackage[justification=centering]{caption}
 
 \def\sectionautorefname{Section}
 \def\subsectionautorefname{Section}
@@ -37,14 +38,19 @@
 \section{Generating random numbers from the Uniform and Normal distributions}
 \label{sec:uniform_normal}
 
+A vector of 10000 samples from a unit Gaussian distribution was generated using \verb`np.random.randn`, and a vector of
+10000 samples from a unit Uniform distribution was generated using \verb`np.random.rand`.
+These sample vectors are used throughout the experiment to investigate different methods of random number generation.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Comparison of histogram with true probability density function}
 
-A vector of Gaussian random numbers was generated using \verb`np.random.randn`, and a vector of uniformly distributed
-random numbers generated using \verb`np.random.rand`. Histograms of the samples are plotted in
-\autoref{fig:histogram_and_pdf}, overlaid with the exact probability density function (PDF). The histograms closely
-follow the shape of the PDF, showing that the generation of the random numbers for these distributions is accurate.
+The sample vectors were binned and plotted as histograms.
+The true analytical probability density function (PDF) was calculated for the unit Gaussian and unit Uniform
+distributions, and was overlaid on the histogram plots (\autoref{fig:histogram_and_pdf}).
+It can be seen in \autoref{fig:histogram_and_pdf} that the histograms closely follow the shape of the analytical PDF,
+showing that the generation of the random numbers for these distributions is accurate.
 
 \begin{figure}[h]
     \centering
@@ -61,7 +67,7 @@ follow the shape of the PDF, showing that the generation of the random numbers f
         \caption{Uniform distribution}
         \label{fig:uniform_histogram_and_pdf}
     \end{subfigure}
-    \caption{Histogram of samples drawn from a distribution and true probability density function of distribution}
+    \caption{Histogram of samples drawn from a distribution, overlaid with the true PDF of the distribution}
     \label{fig:histogram_and_pdf}
 \end{figure}
 
@@ -69,8 +75,8 @@ follow the shape of the PDF, showing that the generation of the random numbers f
 
 \subsection{Kernel density smoothing}
 
-A smooth estimate of the probability density function is calculated using the kernel smoothing method with a Gaussian
-kernel $\mathcal{N}(0, 1)$. The result is plotted for Gaussian and Uniform distributions in \autoref{fig:kernel_smoothed}.
+A unit Gaussian kernel $\mathcal{N}(0, 1)$ is applied to the data to provide a continuous estimate for the PDF.
+The result is plotted for the Gaussian and Uniform distributions in \autoref{fig:kernel_smoothed}.
 
 \begin{figure}[h]
     \centering
@@ -87,42 +93,85 @@ kernel $\mathcal{N}(0, 1)$. The result is plotted for Gaussian and Uniform distr
         \caption{Uniform distribution}
         \label{fig:uniform_kernel_smoothed}
     \end{subfigure}
-    \caption{Plot of true PDF and estimate of PDF generated using Gaussian kernel smoothing}
+    \caption{Estimate of the PDF of a distribution, generated using Gaussian kernel smoothing of random samples from the
+             distribution, overlaid with the true PDF of the distribution}
     \label{fig:kernel_smoothed}
 \end{figure}
 
-The kernel method takes an average of neighbouring values, weighted using a Gaussian distribution. This is advantageous
-as it can smooth random irregularities in the samples: there may be histogram bins with a disproportionately high sample
-count, which would give an incorrectly high estimate of the probability of this bin; the kernel smooths out this local
-peak by taking neighbouring values into account. However, this also means that the kernel smoothing method becomes
-inaccurate when there is a sudden change or discontinuity in the probability density function. In the Uniform
-distribution there is zero probability for values outside the range $0<x<1$, but as the kernel averages over a window of
-values it does not capture the step change at $x=0$ and $x=1$, instead decaying smoothly.
+At each point, the kernel method takes the mean of N neighbouring values, weighted using a Gaussian distribution.
+This is advantageous as it can smooth random irregularities in the samples: for example, there may be histogram bins
+with a sample count that is greater than the expected sample count, which would give an incorrectly high estimate of
+the probability of a sample falling in this bin; the kernel smooths out this local peak by taking neighbouring values
+into account.
+However, this also means that the kernel smoothing method becomes inaccurate when there is a sudden change or
+discontinuity in the probability density function.
+In the Uniform distribution there is zero probability for values outside the range $0<x<1$, but as the kernel averages
+over a window of values it does not capture the step change at $x=0$ and $x=1$ and instead decays smoothly.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Multinomial distribution theory}
 
-For N samples, let B be the random variable representing the number of samples in bin j. Let the probability that a
-sample falls in bin j be $p_j$. By definition, the expected number of samples in bin j is $\mu_j = \mathbb{E}[B] = N p_j$,
-and the variance in the number of samples in bin j is $\sigma^2_j = Var[B] = N p_j (1 - p_j)$.
-\\
+\subsubsection{Derivation of the multinomial distribution}
+For $N$ samples and $M$ bins, let $N_i$ be the random variable representing the number of samples in bin $i$ and $p_i$
+be the probability that a sample falls in bin $i$.
+Samples are drawn independently, so the probability of getting $n_i$ samples in bin $i$ is given by:
+\begin{align*}
+    Pr(N_i = n_i) = \prod_{j=1}^{n_i} p_i = p_i^{n_i}
+\end{align*}
+The joint probability of obtaining a given distribution of $N$ samples across $M$ bins is given by:
+\begin{align}
+    \label{eq:joint_bin_probability_1}
+    Pr(N_1 = n_1, N_2 = n_2, \dots, N_M= n_M) =
+     \prod_{i=1}^{M} {N_{\text{available}, i} \choose {n_i}} p_i^{n_i}
+\end{align}
+where $N_{\text{available}, i} = N - \sum_{j=1}^{i-1} n_j$.
+
+The binomial coefficient in \autoref{eq:joint_bin_probability_1} comes from considering all possible combinations of
+getting $n_i$ samples in bin $i$:
+\begin{itemize}
+    \item For the first bin, $n_1$ samples are chosen from a set of $N$
+    \item For the second bin, $n_2$ samples are chosen from a set of $N - n_1$
+    \item For the $i$th bin, $n_i$ samples are chosen from a set of $N - n_1 \dots - n_{i-1}$
+\end{itemize}
+Simplifying the coefficient in \autoref{eq:joint_bin_probability_1} gives:
+\begin{align*}
+    {N \choose n_1}{N - n_1 \choose n_2} \dots {n_M \choose n_M}
+  & = \frac{N!}{n_1!(N - n_1)!} \frac{(N - n_1)!}{n_2!(N - n_1 - n_2)!} \dots \frac{n_M!}{n_M!} \\
+  & = \frac{N!}{n_1! n_2! \dots n_M!}
+\end{align*}
+The last step above is obtained by diagonal cancellation.
+
+Consequently, \autoref{eq:joint_bin_probability_1} simplifies to:
+\begin{align*}
+    Pr(N_1 = n_1, N_2 = n_2, \dots, N_M = n_M) = \frac{N!}{n_1! n_2! \dots n_M!} p_1^{n_1} p_2^{n_2} ... p_M^{n_M}
+\end{align*}
+
+From considering the probability $p_i = Pr(N_i = n_i)$ for $N$ samples, the mean and standard deviation of $N_i$ can be
+found:
+\begin{align}
+    \label{eq:bin_mean}
+    \mu_i &= \mathbb{E}[N_i] = N p_i \\
+    \label{eq:bin_sd}
+    \sigma_i &= \sqrt{Var[N_i]} = \sqrt{N p_i (1 - p_i)}
+\end{align}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Application to the Uniform distribution}
 For the Uniform distribution between 0 and 1, the pdf $p(x)$ is defined as:
 \begin{align*}
     p(x) &= \frac{1}{x_{max} - x_{min}} \\
          &= 1
 \end{align*}
-Hence, for a histogram with bin width $\delta$ and bin center $c_j$:
+Hence, using \autoref{eq:bin_mean} and \autoref{eq:bin_sd}, the mean and standard deviation of the number of samples from the
+Uniform distribution in a histogram with bin width $\delta$ and bin centers $c_i$:
 \begin{align*}
-    p_j &= \int_{c_j - \delta/2}^{c_j + \delta/2}1\,dx \\
+    p_i &= \int_{c_i - \delta/2}^{c_i + \delta/2}1\,dx \\
         &= \delta \\
-    \mu_j &= N \delta \\
-    \sigma_j &= \sqrt{N \delta (1 - \delta)}
+    \mu_i &= N \delta \\
+    \sigma_i &= \sqrt{N \delta (1 - \delta)}
 \end{align*}
-As $N$ becomes large, the estimate improves. The standard deviation increases less rapidly than the mean with increasing
-$N$ ($\sigma \propto \sqrt{N}$ whereas $\mu \propto N$). Consequently an increase in $N$ will result in the standard
-deviation becoming smaller compared to the mean ($\frac{\sigma}{\mu} \propto \frac{1}{\sqrt{N}}$). This is shown in
-\autoref{fig:uniform_histogram_increasing_N}, where the standard deviation reduces as N increases.
 
 \begin{figure}[h]
     \centering
@@ -146,12 +195,66 @@ deviation becoming smaller compared to the mean ($\frac{\sigma}{\mu} \propto \fr
         \caption{$N=10000$}
         \label{fig:uniform_histogram_10000}
     \end{subfigure}
-    \caption{Histogram of uniformly distributed samples for increasing N, showing mean and $\pm3$ standard deviation}
+    \caption{Histogram of N samples from a Uniform distribution, showing mean and $\pm3$ standard deviation}
     \label{fig:uniform_histogram_increasing_N}
 \end{figure}
 
-In \autoref{fig:uniform_histogram_increasing_N} it can be seen that the sample count lies within the $3\sigma$ interval
-for all bins, so it is concluded that the results are consistent with the multinomial distribution theory.
+\autoref{fig:uniform_histogram_increasing_N} shows that the sample count lies within the $3\sigma$ interval for almost
+all bins, which is consistent with the multinomial distribution theory.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Application to the Gaussian distribution}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/gaussian_histogram_100.png}
+        \caption{$N=100$}
+        \label{fig:gaussian_histogram_100}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/gaussian_histogram_1000.png}
+        \caption{$N=1000$}
+        \label{fig:gaussian_histogram_1000}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/gaussian_histogram_10000.png}
+        \caption{$N=10000$}
+        \label{fig:gaussian_histogram_10000}
+    \end{subfigure}
+    \caption{Histogram of N samples from a Gaussian distribution, showing mean and $\pm3$ standard deviation}
+    \label{fig:gaussian_histogram_increasing_N}
+\end{figure}
+
+\autoref{fig:gaussian_histogram_increasing_N} shows that the sample count lies within the $3\sigma$ interval for almost
+all bins, which is consistent with the multinomial distribution theory.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Effect of increasing $N$}
+Multinomial distribution theory suggests that the method of using a histogram of samples to estimate properties of a
+distribution increases in accuracy as the number of samples $N$ increases.
+For a given bin probability $p_j$, the standard deviation increases less rapidly than the mean with increasing $N$
+($\sigma \propto \sqrt{N}$ whereas $\mu \propto N$).
+Consequently an increase in $N$ will result in the standard deviation becoming smaller compared to the mean
+($\frac{\sigma}{\mu} \propto \frac{1}{\sqrt{N}}$).
+This can be seen in \autoref{fig:uniform_histogram_increasing_N} and \autoref{fig:gaussian_histogram_increasing_N},
+where the standard deviation reduces as $N$ increases.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Effect of bin probabilities}
+\autoref{fig:gaussian_histogram_increasing_N} shows that the variance in the number of samples $N_i$ in bin $i$
+increases as $p_i$ increases.
+\autoref{eq:bin_sd} demonstrates the relationship between $Var[N_i]$ and $p_i$.
+For $p_i$ close to zero, $#$
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -167,7 +270,7 @@ For $x \sim \mathcal{N}(0, 1)$, let $y = f(x) = a x + b$. Then:
     &= \frac{1}{|a|}\times\frac{1}{\sqrt{2\pi}} \exp{\left( -\frac{1}{2} \left( \frac{y-b}{a} \right)^2 \right)}
 \end{align*}
 Comparing with the equation for a general Gaussian distribution, it is clear that $p_Y(y)$ is a Gaussian distribution
-with mean $b$ and variance $a$. This is shown in \autoref{fig:linear_function_of_gaussian}.
+with mean $b$ and variance $a^2$. This is shown in \autoref{fig:linear_function_of_gaussian}.
 
 \begin{figure}[h]
     \centering
@@ -289,6 +392,6 @@ exponential further from $x=0$, where the logarithmic graph becomes linear.
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
-\includepdf[pages=-]{out/Jupyter Notebook.pdf}
+%\includepdf[pages=-]{out/Jupyter Notebook.pdf}
 
 \end{document}
