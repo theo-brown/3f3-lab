@@ -167,7 +167,7 @@ For the Uniform distribution between 0 and 1, the pdf $p(x)$ is defined as:
 Hence, using \autoref{eq:bin_mean} and \autoref{eq:bin_sd}, the mean and standard deviation of the number of samples from the
 Uniform distribution in a histogram with bin width $\delta$ and bin centers $c_i$:
 \begin{align*}
-    p_i &= \int_{c_i - \delta/2}^{c_i + \delta/2}1\,dx \\
+    p_i &= \int_{c_i - \frac{\delta}{2}}^{c_i + \frac{\delta}{2}}1\,dx \\
         &= \delta \\
     \mu_i &= N \delta \\
     \sigma_i &= \sqrt{N \delta (1 - \delta)}
@@ -205,6 +205,14 @@ all bins, which is consistent with the multinomial distribution theory.
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsubsection{Application to the Gaussian distribution}
+
+For the Gaussian distribution:
+\begin{align*}
+        p_i &= \int_{c_i - \frac{\delta}{2}}^{c_i + \frac{\delta}{2}} \frac{1}{\sqrt{2 \pi \sigma}} \exp \left(-\frac{1}{2} x^2 \right) \,dx \\
+        &= \Phi \left(c_i + \frac{\delta}{2}\right)- \Phi\left(c_i - \frac{\delta}{2}\right)
+\end{align*}
+
+The mean and variance are calculated according to \autoref{eq:bin_mean} and \autoref{eq:bin_mean}.
 
 \begin{figure}[h]
     \centering
@@ -252,8 +260,17 @@ where the standard deviation reduces as $N$ increases.
 \subsubsection{Effect of bin probabilities}
 \autoref{fig:gaussian_histogram_increasing_N} shows that the variance in the number of samples $N_i$ in bin $i$
 increases as $p_i$ increases.
-\autoref{eq:bin_sd} demonstrates the relationship between $Var[N_i]$ and $p_i$.
-For $p_i$ close to zero, $#$
+The relationship between $Var[N_i]$ and $p_i$ is clear from \autoref{eq:bin_sd}. \autoref{fig:histogram_variance} is a
+plot of the relationship. For the Gaussian distribution with 30 bins, the bin probabilities remain small, so the
+variance of $N_i$ increases with increasing bin probability. For another distribution or a histogram with some bin
+probabilities greater than 0.5, it would be observed that the variance decreases with increasing bin probability.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.3\textwidth]{figures/histogram_variance.png}
+    \caption{Plot of normalised variance against bin probability}
+    \label{fig:histogram_variance}
+\end{figure}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -270,7 +287,9 @@ For $x \sim \mathcal{N}(0, 1)$, let $y = f(x) = a x + b$. Then:
     &= \frac{1}{|a|}\times\frac{1}{\sqrt{2\pi}} \exp{\left( -\frac{1}{2} \left( \frac{y-b}{a} \right)^2 \right)}
 \end{align*}
 Comparing with the equation for a general Gaussian distribution, it is clear that $p_Y(y)$ is a Gaussian distribution
-with mean $b$ and variance $a^2$. This is shown in \autoref{fig:linear_function_of_gaussian}.
+with mean $b$ and variance $a^2$.
+The result is compared with a histogram of transformed samples in \autoref{fig:linear_function_of_gaussian}. The close
+agreement suggests this hypothesis is correct.
 
 \begin{figure}[h]
     \centering
@@ -291,21 +310,115 @@ For $x \sim \mathcal{N}(0, 1)$, let $y = f(x) = x ^ 2$. Then:
     &= \frac{1}{\sqrt{2\pi y}} \exp{\left( -\frac{1}{2} y \right)}
 \end{align*}
 
-The result is plotted in \autoref{fig:quadratic_function_of_gaussian}.
+The result is compared with a histogram of transformed samples in \autoref{fig:quadratic_function_of_gaussian}. The
+close agreement suggests this hypothesis is correct.
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.6\textwidth]{figures/quadratic_function_of_gaussian.png}
-\caption{Histogram of quadratic function $\left(f(x^{(i)}) = \left(x^{(i)}\right)^2\right)$) of Gaussian samples
-overlaid with calculated PDF}
-\label{fig:quadratic_function_of_gaussian}
+    \centering
+    \includegraphics[width=0.6\textwidth]{figures/quadratic_function_of_gaussian.png}
+    \caption{Histogram of quadratic function $\left(f(x^{(i)}) = \left(x^{(i)}\right)^2\right)$ of Gaussian samples
+    overlaid with calculated PDF}
+    \label{fig:quadratic_function_of_gaussian}
 \end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{$f = \sin(x)$}
+For $x \sim \mathcal{U}(0, 2\pi)$, let $y = f(x) = \sin(x)$. Then:
+\begin{align*}
+    p(x) &= \frac{1}{2\pi} \\
+    f^{-1}(y) &= \sin^{-1}(y) \\
+    \left|\frac{dy}{dx}\right| &= |\cos(x)| \\
+    p_Y(y) &= \sum_{i=1}^{2} \frac{\frac{1}{2\pi}}{\left| \cos\left(\sin^{-1}(y)\right) \right|}
+\end{align*}
+By drawing a right-angled triangle with hypotenuse of length 1 and a side of length $y$, and applying trigonometry and
+Pythagoras' theorem, it can be shown that:
+\begin{align*}
+    \cos\left(\sin^{-1}(y)\right) = \sqrt{\left(1 -y^2 \right)}
+\end{align*}
+Hence:
+\begin{align*}
+    p_Y(y) &= \frac{1}{\pi \sqrt{\left(1- y^2\right)}}
+\end{align*}
+The result is compared with a histogram of transformed samples in \autoref{fig:sinusoidal_function_of_uniform}. The
+close agreement suggests this hypothesis is correct.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{figures/sinusoidal_function_of_uniform.png}
+    \caption{Histogram of sinusoidal function $\left(f(x^{(i)}) = \sin\left(x^{(i)}\right)\right)$ of Uniform samples
+    overlaid with calculated PDF}
+    \label{fig:sinusoidal_function_of_uniform}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{$f = \text{clip}(\sin(x), 0.7)$}
+For $x \sim \mathcal{U}(0, 2\pi)$, let:
+\begin{align*}
+    y = f(x) = \begin{cases}
+                   -0.7 & \sin(x) < -0.7 \\
+                   \sin(x) & |\sin(x)| < 0.7 \\
+                   0.7 & \sin(x) > 0.7
+               \end{cases}
+\end{align*}
+Note that this function differs from the one in the handout by being symmetric, which is a better model of realistic
+signal clipping.
+This produces a probability density with the following properties:
+\begin{itemize}
+    \item $|y|$ will never be exceed $0.7$. Hence $p_Y(y)$ will be zero for $|y| > 0.7$.
+    \item $f(x)$ collapses all values less than $-0.7$ to $-0.7$, and all values greater than $0.7$ to $0.7$. Hence
+          $p_Y(y)$ will have delta functions at $y = 0.7$ and $y = -0.7$, containing all of the probability mass
+          from $y > 0.7$ and $y < -0.7$ respectively.
+    \item For $|y| < 0.7$, $p_Y(y) = \frac{1}{\pi \sqrt{\left(1- y^2\right)}}$ as before.
+\end{itemize}
+The area $A$ of each delta function can be calculated using the fact that the PDF must integrate to 1:
+\begin{align*}
+    A &= \frac{1}{2}\left(1 - \int_{-0.7}^{0.7} \frac{1}{\pi\sqrt{1 - y^2}}\,dy \right) \\
+    &= \frac{1}{2} - \frac{1}{\pi} \sin^{-1}(0.7)
+\end{align*}
+Which gives the PDF as:
+\begin{align*}
+    p_Y(y) = \begin{cases}
+                 A \delta(y + 0.7) & y = -0.7 \\
+                 \frac{1}{\pi \sqrt{\left(1- y^2\right)}} & |y| < 0.7 \\
+                 A \delta(y - 0.7) & y = 0.7 \\
+                 0 & \text{otherwise}
+             \end{cases}
+\end{align*}
+The presence of the delta function in the PDF can also be explained using the Jacobian formula. Consider the derivative
+of y:
+\begin{align*}
+    & \frac{dy}{dx} =
+    \begin{cases}
+        \cos(x) & 0 < x < \sin^{-1}(0.7) \\
+        0 & \sin^{-1}(0.7) < x < \pi - \sin^{-1}(0.7) \\
+        \cos(x) & \pi - \sin^{-1}(0.7) < x < \pi + \sin^{-1}(0.7) \\
+        0 & \pi + \sin^{-1}(0.7) < x < 2\pi - \sin^{-1}(0.7)
+   \end{cases}
+\end{align*}
+As the Jacobian formula involves dividing by $\frac{dy}{dx}$, $p_Y(y)$ is undefined for the range
+$|y| > 0.7$.
+
+The calculated PDF is compared with a histogram of transformed samples in \autoref{fig:sinusoidal_function_of_uniform}.
+The close agreement suggests this hypothesis is correct.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{figures/limited_sinusoidal_function_of_uniform.png}
+    \caption{Histogram of limited sinusoidal function $\left(f(x^{(i)}) = \text{clip}\left(\sin\left(x^{(i)}\right), 0.7\right)\right)$
+        of Uniform samples overlaid with calculated PDF}
+    \label{fig:limited_sinusoidal_function_of_uniform}
+\end{figure}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Generating random variables using the inverse CDF method}
 
+\subsection{Exponential distribution}
 For the exponential distribution with mean one:
 \begin{align*}
     & \text{PDF: } p(y) = \exp(-y), \ y \geq 0 \\
@@ -317,12 +430,97 @@ For the exponential distribution with mean one:
 true PDF.
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.6\textwidth]{figures/icdf_exponential.png}
-\caption{Histogram of samples drawn from the uniform distribution and transformed using the iCDF method to follow the
-exponential distribution, overlaid with the true exponential PDF}
-\label{fig:icdf_exponential}
+    \centering
+    \includegraphics[width=0.6\textwidth]{figures/icdf_exponential.png}
+    \caption{Histogram of samples drawn from the uniform distribution and transformed using the iCDF method to follow the
+    exponential distribution, overlaid with the true exponential PDF}
+    \label{fig:icdf_exponential}
 \end{figure}
+
+\subsection{Estimating properties of the exponential distribution}
+
+Properties of the distribution can be estimated using Monte Carlo methods:
+
+\begin{align*}
+    \hat{\mu} &= \frac{1}{N} \sum_{i=1}^N y^{(i)} \\
+    \hat{\sigma^2} &= \frac{1}{N} \sum_{i=1}^N \left(y^{(i)}\right)^2 - \hat{\mu}^2
+\end{align*}
+
+\subsubsection{Properties of Monte Carlo mean estimator}
+
+The Monte Carlo mean estimate $\hat{\mu}$ can be shown to unbiased:
+
+\begin{align*}
+    \mathbb{E}[\hat{\mu}] & = \mathbb{E}\left[\frac{1}{N} \sum_{i=1}^N y^{(i)}\right] \\
+    &= \frac{1}{N} \sum_{i=1}^N \mathbb{E}\left[y^{(i)}\right] = \frac{1}{N} \sum_{i=1}^N \mu \\
+    &= \frac{N\mu}{N} = \mu
+\end{align*}
+
+To derive the variance of the Monte Carlo mean estimator, consider the variance of the sum of random variables $X$ and
+$Y$:
+
+\begin{align*}
+    Var[X+Y]
+    &= \mathbb{E}\left[(X + Y - \mu_X - \mu_Y)^2\right] \\
+    &= \mathbb{E}\left[((X - \mu_X) + (Y - \mu_Y))^2\right] \\
+    &= \mathbb{E}\left[(X-\mu_X)^2\right]] + \mathbb{E}\left[(Y-\mu_Y)^2\right] + 2\mathbb{E}\left[(X-\mu_X)(Y-\mu_Y)\right]
+\end{align*}
+
+Using the fact that $X$ and $Y$ are independent gives $\mathbb{E}\left[(X-\mu_X)(Y-\mu_Y)\right] = 0$, hence:
+
+\begin{align*}
+    Var[X+Y] & = Var[X] + Var[Y]
+\end{align*}
+
+When multiplying a random variable by a scalar, the variance is multiplied by the square of the scalar:
+
+\begin{align*}
+    Var[kX]
+    &= \mathbb{E}\left[(kX)^2\right] - \mathbb{E}[kX]^2 \\
+    &= k^2 \mathbb{E}\left[X^2\right] - k^2\mathbb{E}[X]^2 \\
+    &= k^2 Var[kX]
+\end{align*}
+
+Treating the samples $y^{(i)}$ as independent random variables and combining the above properties gives:
+
+\begin{align*}
+    Var\left[ \frac{1}{N}\sum_{i=1}^N y^{(i)} \right] &= \frac{1}{N^2} \sum_{i=1}^N Var\left[y^{(i)}\right] = \frac{\sigma}{N}
+\end{align*}
+
+The convergence of the Monte Carlo estimators for the mean and variance is shown in \autoref{fig:monte_carlo_convergence}.
+It is apparent that the mean estimator does indeed converge proportional to $\frac{1}{N}$
+(see \autoref{fig:monte_carlo_mean_best_fit}).
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/monte_carlo_mean.png}
+        \caption{$\hat{\mu} = \frac{1}{N} \sum_{i=1}^{N} y^{(i)}$}
+        \label{fig:monte_carlo_mean}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/monte_carlo_variance.png}
+        \caption{$\hat{\sigma^2} = \frac{1}{N} \sum_{i=1}^N \left(y^{(i)}\right)^2 - \hat{\mu}^2$}
+        \label{fig:monte_carlo_variance}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/monte_carlo_mean_best_fit.png}
+        \caption{$\hat{\mu}$ with $\frac{1}{N}$ overlay}
+        \label{fig:monte_carlo_mean_best_fit}
+    \end{subfigure}
+    \caption{Behaviour of Monte Carlo estimators for increasing number of samples}
+    \label{fig:monte_carlo_convergence}
+\end{figure}
+
+\subsubsection{Application to the exponential distribution}
+The exponential distribution $p(y) = \exp(-y), \ y \geq 0$ has $\mu = 1$ and $\sigma^2 = 1$.
+Applying Monte Carlo estimation to 10000 samples gives $\hat{\mu} = 1.0035$ and $\hat{\sigma^2} = 1.0128$, which are
+close to the true values.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
