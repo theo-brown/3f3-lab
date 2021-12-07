@@ -526,7 +526,9 @@ close to the true values.
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Simulation from non-standard densities}
+\section{Generating random variables using a scaled mixture of Gaussians}
+
+\subsection{Using the Exponential distribution}
 
 Using the iCDF method, we can generate samples that are distributed according to:
 \begin{align*}
@@ -537,10 +539,10 @@ This distribution has:
     & \text{CDF: } F(u) = \int_0^u p(u') du' = 1 - \exp\left(-\frac{\alpha^2}{2} u\right) \\
     & \text{iCDF: } F^{-1}(v) = -\frac{2}{\alpha^2} \ln(1 - v)
 \end{align*}
-Samples $u^{(i)}$ can therefore be generated from uniformly distributed samples $v^(i)$.
+Samples $u^{(i)}$ can therefore be generated from uniformly distributed samples $v^{(i)}$.
 The samples $u^{(i)}$ are then used to set the variance of the random variable X:
 \begin{align*}
-    p(x) = int_{0}^{\inf} \mathcal{N}(x\,|0, u) p(u) du
+    p(x) = \int_{0}^{\infty} \mathcal{N}(x\,|0, u) p(u) du
 \end{align*}
 The limit of the integral is from zero to infinity because the standard deviation must be positive.
 A histogram of samples of $x^{(i)}$ is plotted in \autoref{fig:nonstandard_distribution} for different values of
@@ -587,6 +589,57 @@ exponential further from $x=0$, where the logarithmic graph becomes linear.
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Using the Gamma distribution}
+\subsubsection{PDF of $U=\frac{1}{V}$}
+The probability density function of the random variable $U$ can be calculated by applying the Jacobian method:
+\begin{align*}
+     p(v) &= \mathcal{G}(v | \theta, \theta^{-1})
+    = \frac{1}{\theta^{-\theta} \Gamma (\theta)} v^{\theta - 1} e^{-v \theta} \\
+    \left| \frac{du}{dv} \right| &= \left| -v^{-2} \right| = v^{-2} \\
+    f^{-1} (u) &= u^{-1}
+\end{align*}
+\begin{align*}
+    p(u) &= \left. \frac{p(v)}{v^{-2}} \right|_{v=u^{-1}} \\
+    &= \frac{\theta^{\theta}}{u^2 \Gamma(\theta)} u^{1-\theta} e^{-\frac{\theta}{u}}
+\end{align*}
+\begin{align}\label{eq:pdf_of_u}
+    p(u) &= \frac{\theta^{\theta}}{\Gamma(\theta)} u^{-1-\theta} e^{-\frac{\theta}{u}}
+\end{align}
+
+\subsubsection{PDF of $X \sim \mathcal{N}(x | 0, u)$}
+The PDF of $X \sim \mathcal{N}(x | 0, u)$, where $u \sim p(u)$ from \autoref{eq:pdf_of_u} can be obtained by
+marginalisation:
+\begin{align*}
+    p(x) &= \int_0^\infty \mathcal{N}(x | 0, u) p(u) du \\
+    &= \int_0^\infty \frac{1}{\sqrt{2\pi}} u^{-\frac{1}{2}} e^{-\frac{1}{2} x^2 u^{-1}}
+    \frac{\theta^{\theta}}{\Gamma(\theta)} u^{-1-\theta} e^{-\theta u^{-1}} du \\
+    &= \frac{\theta^{\theta}}{\sqrt{2\pi} \Gamma(\theta)}
+    \int_0^\infty \left( u^{-1} \right) ^ {\frac{3}{2} + \theta} e^{-\left( \theta + \frac{1}{2} x^2 \right) u^{-1}} du \\
+\end{align*}
+Setting $u = v^{-1}$, and using the fact that $\frac{du}{dv} = -v^{-2}$:
+\begin{align*}
+    p(x) &= - \frac{\theta^{\theta}}{\sqrt{2\pi} \Gamma(\theta)}
+    \int_{-\infty}^0 v ^ {\frac{3}{2} + \theta} e^{-\left( \theta + \frac{1}{2} x^2 \right) v} v^{-2} dv
+\end{align*}
+\begin{align}\label{eq:p(x)_integral}
+    p(x) = \frac{\theta^{\theta}}{\sqrt{2\pi} \Gamma(\theta)}
+    \int_0^\infty v ^ {-\frac{1}{2} + \theta} e^{-\left( \theta + \frac{1}{2} x^2 \right) v} dv
+\end{align}
+From the definition of the Gamma distribution, we know that:
+\begin{align*}
+    \int_0^\infty v ^ {a - 1} e^{-\frac{v}{b}} dv = b^a \Gamma(a)
+\end{align*}
+Which is the integral from \autoref{eq:p(x)_integral} with
+\begin{align*}
+    a &= \theta + \frac{1}{2} \\
+    b &= \left(\theta + \frac{1}{2} x^2 \right) ^ {-1}
+\end{align*}
+Hence \autoref{eq:p(x)_integral} solves to become:
+\begin{align}
+    p(x) = \frac{\theta^{\theta} \Gamma\left(\theta + \frac{1}{2} \right)}{\sqrt{2\pi} \Gamma(\theta)}
+    \left( \theta + \frac{1}{2}x^2 \right)^{-\theta - \frac{1}{2}}
+\end{align}
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newpage
